@@ -1,46 +1,49 @@
-name: Generate Block Diagrams
+name: Generate Verilog Block Diagrams
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
     paths:
       - '**.v'
       - '**.sv'
-
-permissions:
-  contents: write
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   generate-diagrams:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Install dependencies
-      run: |
-        sudo apt-get install -y yosys npm
-        sudo npm install -g netlistsvg
-    
-    - name: Generate block diagrams
-      run: |
-        mkdir -p docs/diagrams
-        find rtl -name "*.v" -not -name "*_tb.v" | while read vfile; do
-          basename=$(basename "$vfile" .v)
-          yosys -p "read_verilog $vfile; proc; opt; clean; write_json docs/diagrams/${basename}.json"
-          netlistsvg docs/diagrams/${basename}.json -o docs/diagrams/${basename}.svg
-          rm docs/diagrams/${basename}.json
-        done
-    
-    - name: Commit diagrams
-      run: |
-        git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git config --local user.name "github-actions[bot]"
-        git add docs/diagrams/*.svg
-        git diff --quiet && git diff --staged --quiet || git commit -m "Auto-generate block diagrams"
-    
-    - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: ${{ github.ref }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install TerosHDL
+        run: |
+          npm install -g @teroshdl/teroshdl2doc
+          
+      - name: Generate block diagrams
+        run: |
+          mkdir -p docs/diagrams
+          # Generate diagrams for all Verilog files
+          for file in $(find . -name "*.v" -o -name "*.sv"); do
+            echo "Processing $file"
+            filename=$(basename "$file" .v)
+            filename=$(basename "$filename" .sv)
+            teroshdl2doc --input "$file" --output "docs/diagrams/${filename}" --only-diagrams
+          done
+          
+      - name: Commit and push diagrams
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/diagrams/
+          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-generate block diagrams [skip ci]"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
