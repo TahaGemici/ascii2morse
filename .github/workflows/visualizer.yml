@@ -25,7 +25,7 @@ jobs:
     - name: Generate block diagrams
       run: |
         mkdir -p docs/diagrams
-        for vfile in rtl/*.v; do
+        find rtl -name "*.v" -not -name "*_tb.v" | while read vfile; do
           basename=$(basename "$vfile" .v)
           yosys -p "read_verilog $vfile; proc; opt; clean; write_json docs/diagrams/${basename}.json"
           netlistsvg docs/diagrams/${basename}.json -o docs/diagrams/${basename}.svg
