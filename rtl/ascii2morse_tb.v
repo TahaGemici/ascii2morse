@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module morse_tx_tb;
+module ascii2morse_tb;
     reg clk;
     reg arst_n;
     reg[7:0] ascii_in;
@@ -9,7 +9,7 @@ module morse_tx_tb;
     wire morse_out;
 
     // Instantiate the morse_tx module with a smaller prescaler for faster simulation
-    morse_tx #(.PRESCALER(100)) dut (
+    ascii2morse #(.PRESCALER(100)) dut (
         .clk(clk),
         .arst_n(arst_n),
         .write_en(write_en),
