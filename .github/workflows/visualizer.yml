@@ -17,27 +17,20 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-    
-    - name: Install Symbolator dependencies
+    - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y graphviz
-    
-    - name: Install Symbolator
-      run: |
-        pip install pyyaml
-        pip install https://github.com/kevinpt/symbolator/archive/master.zip
+        sudo apt-get install -y yosys npm
+        sudo npm install -g netlistsvg
     
     - name: Generate block diagrams
       run: |
         mkdir -p docs/diagrams
         for vfile in src/*.v; do
           basename=$(basename "$vfile" .v)
-          symbolator -i "$vfile" -o "docs/diagrams/${basename}.svg" --scale 1.0
+          yosys -p "read_verilog $vfile; proc; opt; clean; write_json docs/diagrams/${basename}.json"
+          netlistsvg docs/diagrams/${basename}.json -o docs/diagrams/${basename}.svg
+          rm docs/diagrams/${basename}.json
         done
     
     - name: Commit diagrams
@@ -45,7 +38,7 @@ jobs:
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         git add docs/diagrams/*.svg
-        git diff --quiet && git diff --staged --quiet || git commit -m "Auto-generate block diagrams [skip ci]"
+        git diff --quiet && git diff --staged --quiet || git commit -m "Auto-generate block diagrams"
     
     - name: Push changes
       uses: ad-m/github-push-action@master
