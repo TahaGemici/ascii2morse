@@ -19,14 +19,13 @@ jobs:
     
     - name: Install dependencies
       run: |
-        sudo apt-get update
         sudo apt-get install -y yosys npm
         sudo npm install -g netlistsvg
     
     - name: Generate block diagrams
       run: |
         mkdir -p docs/diagrams
-        for vfile in src/*.v; do
+        for vfile in rtl/*.v; do
           basename=$(basename "$vfile" .v)
           yosys -p "read_verilog $vfile; proc; opt; clean; write_json docs/diagrams/${basename}.json"
           netlistsvg docs/diagrams/${basename}.json -o docs/diagrams/${basename}.svg
