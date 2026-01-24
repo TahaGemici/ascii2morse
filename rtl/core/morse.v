@@ -1,21 +1,23 @@
-module morse #(parameter PRESCALER = 100000) (
+module morse (
     input clk,
     input arst_n,
 
     input write_en,
     input[7:0] ascii_in,
+    input[31:0] prescaler,
     output full,
+    output empty,
     
     output reg morse_out
 );
     wire clk_morse;
-    clk_div #(PRESCALER) clk_div_inst (
+    clk_div clk_div_inst (
         .clk_in(clk),
         .arst_n(arst_n),
+        .prescaler(prescaler),
         .clk_out(clk_morse)
     );
 
-    wire empty;
     wire[7:0] fifo_out;
     reg rEn;
     async_fifo #(8, 1024) fifo(
