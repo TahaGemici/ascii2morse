@@ -3,28 +3,28 @@ module morse_axi4lite (
     input aresetn,
 
     input awvalid,
-    output reg awready,
+    output awready,
     input[31:0] awaddr,
     input[2:0] awprot,
 
     input wvalid,
-    output reg wready,
+    output wready,
     input[31:0] wdata,
     input[3:0] wstrb,
 
-    output reg bvalid,
+    output bvalid,
     input bready,
-    output reg[1:0] bresp,
+    output[1:0] bresp,
 
     input arvalid,
-    output reg arready,
+    output arready,
     input[31:0] araddr,
     input[2:0] arprot,
 
-    output reg rvalid,
+    output rvalid,
     input rready,
-    output reg[31:0] rdata,
-    output reg[1:0] rresp,
+    output[31:0] rdata,
+    output[1:0] rresp,
 
     output morse_out
 );
